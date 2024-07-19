@@ -1,0 +1,73 @@
+一、初始化
+1.	git init –bare
+	创建的是裸仓库，是不能够直接在裸仓库里面进行commit操作的，因为裸仓库中没有工作目录（workspace）（注意，remote – repository - workspace）。
+	裸仓库也不能够直接被clone，会提示远端是empty。
+	本地可以执行git init后，git remote add origin *** 来创建远端的仓库。
+	执行git branch，发现什么都没有，这时候不是git branch/checkout来创建分支，而是你第一次commit没有成功；因为，你执行commit的时候，没有做如下操作：
+        git config --global user.email sunx@gmail.com
+git config --global user.name sun.xun
+	我在执行git push -u origin master的时候，提示error: remote unpack failed: unable to create temporary object directory.
+因为我是root执行git init –bare的时候，其他用户情况下的确是没有权限。
+	新的clone了一个仓库，也要执行git config；否则执行不了commit；并且log信息，也是根据你config的情况来辨别的；并不是用户哈。
+二、分支
+	创建分支，之前，你要清楚，从哪个分支，那个tag，或者那个commit上创建分支。还有最重要的是，要知道创建分支的目的，都是临时维护，后面都要merge到主分支上去的。
+	git branch -d ** 删除本地分支；git push origin –delete ** 是删除远端分支；
+	git branch -m old new 修改分支的名字；git branch -v 查看分支最后一次提交；git branch -vv查看详细情况
+	设置本地分支的上游分支，即设置本地分支的远端关联；
+        git branch --set-upstream-to=origin/<remote-branch> <local-branch>
+        简化一下为 git branch -u origin/<remote-branch>  <local-branch>
+        这会将 <local-branch> 分支设置为跟踪 <remote-branch> 远程分支
+	将本地新分支，推送到远端
+git push -u origin <new-branch> 这个是在远端建立了本地的一个关联，后面直接git push和git pull就可以了。
+注意，当本地分支都有关联的远端分支后；在每一个分支上执行git push，都会push到本地分支对应的远端分支上。
+从远端克隆分支到本地
+方法一：
+git clone https://github.com/user/***
+git checkout -b local_branch origin/remote_branch 
+方法二
+git clone -b remote_branch  https://github.com/user/repo.git
+就会在本地创建一个和远端一样名字的分支。
+
+	新创建本地分支，没有直接关联到远端新分支，直接修改后，commit；再去关联远端的分支，出现问题“unable to migrate objects to permanent storage”。
+从master分支，生成的新分支后，checkout后，是可以的。上面的问题，大概率是，新建分支后，没有checkout到新分支上。所以说，用git branch创建分支，不如使用git checkout -b 来创建分支，因为后者是创建并切换到新的分支。
+三、merge
+测试学习前，需要确认，如何操作，如何修改，修改后的现象；
+切换到主分支，然后执行git merge **，将需要合并的分支，合并；然后，处理冲突，最后执行git add和git commit；
+没有冲突的，直接fast forward就过去了！有冲突的：
+ 
+会提示，自动merge失败。执行merge后，workspace已经被修改了，需要自己手动改好了后，再提交。
+ 
+文件内容：
+ 
+Git 提供了不同的合并策略，最常用的有以下几种：
+Fast-forward 合并：当目标分支没有新的提交时，Git 会将目标分支直接指向源分支。这种合并不会创建新的合并提交。
+git merge <source-branch>
+非 Fast-forward 合并：如果目标分支有新的提交，Git 会创建一个新的合并提交，将源分支的更改合并到目标分支。
+git merge --no-ff <source-branch>
+  https://blog.csdn.net/formylovetm/article/details/103294960  -  解释一些—no-ff参数的含义。
+ 
+四、技巧等
+	图形化显示分支：
+  git log --graph --oneline --decorate –all
+  或者使用其他的工具gitk，tik；
+	回滚代码：
+重置 HEAD
+git reset --soft <commit-hash>
+会保留workspace的修改内容
+git reset --hard <commit-hash>
+不会保留workspace的修改内容
+撤销最近的提交
+git revert <commit-hash>
+
+五、总结：
+	有remote，repository，workspace的概念，remote也是个仓库，是个远端仓库，本地的东西需要往远端存储；例如，本地创建了一个仓库，可以存储到远端；本地创建了一个分支，可以存储到远端。
+	一个git库，只有一个版本，可以通过分支来实现不同的那啥。。。，也不知道怎么来描述了；
+	Git 仓库添加访问权限或者密码保护，你通常需要依赖版本控制系统外的额外工具或服务来管理权限；像ssh，https等等。
+	从a分支，切换到b分支，a分支多余的文件（b分支没有的文件），会消失。
+	git checkout -b master origin/mster 只是从本地仓库中，获得master分支的信息；而不会从remote（远端）获取最新的消息。应该可以得到初步的结论，git只有配合remote，才会实现远端的相关操作（当然push和pull也是对远端的操作）。
+
+
+展望：
+1.创建tag；
+2.一个git中包含多个其他的git；
+3.vscode中git操作；
